@@ -70,3 +70,19 @@ Based on the ESP32 P1 board
 
 - 
 </details>
+
+<details><summary>TTGO T-HiGrow V1.1</summary>
+
+(Store: Aliexpress)([info](https://aliexpress.com/item/32962409404.html))
+
+[Schematic](https://github.com/Xinyuan-LilyGO/TTGO-HiGrow/raw/master/schematic.pdf)
+
+- GPIO25 = SDA (Bus A)
+- GPIO26 = SCK (Bus A)
+- GPIO04 = Power enable for sensors
+- GPIO35 = Wake button
+- GPIO16 = DHT11
+- GPIO33 = Battery ADC
+- GPIO32 = Soil humidity ADC
+- GPIO34 = Soil salt ADC
+</details>
