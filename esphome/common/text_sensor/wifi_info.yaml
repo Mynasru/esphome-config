@@ -1,0 +1,9 @@
+---
+platform: wifi_info
+ip_address:
+  name: ${node_friendly_name} IP address
+ssid:
+  name: ${node_friendly_name} SSID
+bssid:
+  name: ${node_friendly_name} BSSID
+...

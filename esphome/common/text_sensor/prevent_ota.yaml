@@ -1,0 +1,18 @@
+---
+platform: homeassistant
+name: "Enable OTA"
+entity_id: input_boolean.esphome_ota
+id: ha_ota_enable
+on_value:
+  - if:
+      condition:
+        text_sensor.state:
+          id: ha_ota_enable
+          state: 'on'
+      then:
+        - logger.log: "Deep sleep prevented by HA"
+        - deep_sleep.prevent: deep_sleep_1
+      else:
+        - logger.log: "Deep sleep activated by HA"
+        - deep_sleep.enter: deep_sleep_1
+...

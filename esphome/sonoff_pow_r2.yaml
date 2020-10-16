@@ -1,0 +1,98 @@
+---
+######################### GENERAL #########################
+substitutions:
+  node_name: sonoff_pow_r2
+  node_friendly_name: SonOff Pow R2
+  friendly_id: SonOff_Pow_R2
+  comment: SonOff Pow R2 mains relay with V & A sensor and button
+  # Time settings
+  reboot_timeout: 15min
+  global_update_interval: 60sec
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include common/device_base.yaml
+
+######################### DEVICE SETTINGS #########################
+esphome:
+  platform: ESP8266
+  board: esp8285
+
+wifi:
+  # Optional manual IP
+#  manual_ip:
+#    static_ip: 192.168.178.27
+#    gateway: 192.168.178.1
+#    subnet: 255.255.255.0
+
+status_led:
+  pin:
+    number: GPIO13
+    inverted: True #Normally off
+
+######################### LOGGING #########################
+logger:
+  baud_rate: 0 # disable UART logging
+#  level: NONE
+#  level: ERROR
+#  level: WARN
+#  level: INFO
+  level: DEBUG
+#  level: VERBOSE
+#  level: VERY_VERBOSE
+
+####################################################################
+###################### DETAILED CONFIGURATION ######################
+####################################################################
+
+######################### BINARY SENSORS #########################
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "$node_friendly_name button"
+    device_class: power
+    filters:
+      - delayed_off: 20ms # Debounce, direct on, off after # time
+    on_press:
+      then:
+        - switch.toggle: relay
+    on_click:
+      min_length: 3s
+      then:
+        - switch.turn_on: reboot
+
+######################### SENSORS #########################
+sensor:
+  - platform: cse7766
+    # Needs calibration !!
+    current:
+      name: "$node_friendly_name Current"
+    voltage:
+      name: "$node_friendly_name Voltage"
+    power:
+      name: "$node_friendly_name Power"
+
+######################### TEXT SENSORS #########################
+text_sensor:
+
+######################### SWITCH #########################
+switch:
+  - platform: gpio
+    pin:
+      number: GPIO12
+      inverted: False
+    name: "$node_friendly_name relay"
+    id: relay
+  - platform: restart
+    name: "$node_friendly_name reboot"
+    id: reboot
+    internal: True
+
+######################### UART #########################
+uart:
+  rx_pin: RX
+  baud_rate: 4800
+...

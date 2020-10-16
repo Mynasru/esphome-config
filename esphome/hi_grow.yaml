@@ -1,0 +1,151 @@
+
+######################### GENERAL #########################
+substitutions:
+  node_name: hi_grow
+  node_friendly_name: Hi Grow
+  friendly_id: Hi_Grow
+  comment: TTGO Hi-Grow v1.1 Plant sensor
+  # Time settings
+  reboot_timeout: 15min
+  global_update_interval: 360sec
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include common/device_base.yaml
+
+######################### DEVICE SETTINGS #########################
+esphome:
+  platform: ESP32
+  board: esp-wrover-kit
+
+wifi:
+  # Optional manual IP
+  manual_ip:
+    static_ip: 192.168.178.41
+    gateway: 192.168.178.1
+    subnet: 255.255.255.0
+
+######################### LOGGING #########################
+logger:
+#  baud_rate: 0 # disable UART logging
+#  level: NONE
+#  level: ERROR
+#  level: WARN
+#  level: INFO
+  level: DEBUG
+#  level: VERBOSE
+#  level: VERY_VERBOSE
+
+status_led:
+  pin:
+    number: GPIO27
+    inverted: False #Normally off
+
+####################################################################
+###################### DETAILED CONFIGURATION ######################
+####################################################################
+
+######################### LIGHT #########################
+light:
+  - platform: binary
+    name: "$node_friendly_name OTA Indicator"
+    output: gpio_23
+    internal: True
+
+######################### OUTPUT #########################
+output:
+  - platform: gpio
+    pin: GPIO23
+    id: gpio_23
+
+######################### I2C #########################
+i2c:
+  sda: 25
+  scl: 26
+#  scan: True
+  id: bus_a
+
+######################### SWITCH #########################
+switch:
+  - platform: gpio
+    pin:
+      number: GPIO4
+      inverted: False
+      mode: OUTPUT
+    name: "$node_friendly_name Sensor Power"
+    id: spower
+    restore_mode: ALWAYS_ON
+    internal: true
+
+######################### BINARY SENSORS #########################
+binary_sensor:
+  - platform: gpio
+    pin: 
+      number: GPIO35
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "$node_friendly_name Wake Button"
+
+######################### SENSORS #########################
+sensor:
+  - platform: dht
+    model: dht11
+    pin:
+      number: GPIO16
+      mode: input
+    temperature:
+      name: "$node_friendly_name Temperature"
+    humidity:
+      name: "$node_friendly_name Humidity"
+    update_interval: $global_update_interval
+    setup_priority: -100
+    
+  - platform: adc
+    pin: GPIO33
+    name: "$node_friendly_name Battery"
+    attenuation: 6db
+    unit_of_measurement: '%'
+    accuracy_decimals: 0
+    icon: mdi:battery-charging
+    update_interval: $global_update_interval
+    filters:
+      - calibrate_linear:
+          - 0.0 -> 0.0
+          - 2.2 -> 100
+    
+  - platform: adc
+    pin: GPIO32
+    name: "$node_friendly_name Soil Humidity"
+    attenuation: 11db
+    update_interval: $global_update_interval
+    unit_of_measurement: '%'
+    filters:
+      - sliding_window_moving_average:
+          window_size: 12
+          send_every: 1
+          send_first_at: 1
+      - calibrate_linear:
+          # Map 0.0 (from sensor) to 0.0 (true value)
+          - 3.0 -> 0.0
+          - 1.36 -> 100.0
+        
+  - platform: adc
+    pin: GPIO34
+    name: "$node_friendly_name Soil Salt"
+    attenuation: 0db
+    update_interval: $global_update_interval
+    unit_of_measurement: '%'
+    filters:
+      - sliding_window_moving_average:
+          window_size: 12
+          send_every: 1
+          send_first_at: 1
+      - calibrate_linear:
+          # Map 0.0 (from sensor) to 0.0 (true value)
+          - 0.0 -> 0.0
+          - 0.52 -> 100.0
+    
+  - platform: bh1750
+    name: "$node_friendly_name Illuminance"
+    address: 0x23
+    update_interval: $global_update_interval

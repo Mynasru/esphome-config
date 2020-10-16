@@ -1,0 +1,4 @@
+---
+platform: wifi_signal
+name: ${node_friendly_name} WiFi signal
+update_interval: ${global_update_interval}

@@ -1,0 +1,44 @@
+---
+######################### DEVICE #########################
+esphome:
+  name: ${node_name}
+  comment: ${comment}
+  build_path: ./build/${node_name}
+
+######################### LOGGING #########################
+logger:
+#  level: ${log_level}
+
+######################### WIFI #########################
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  reboot_timeout: ${reboot_timeout}
+  ap:
+    ssid: ${node_name}
+    password: !secret esphome_ap_password
+  # Directly connects to WiFi network without doing a full scan first.
+  fast_connect: true
+captive_portal:
+
+######################### API #########################
+api:
+  password: !secret esphome_api_password
+  reboot_timeout: ${reboot_timeout}
+#  port: 6053
+
+######################### OTA #########################
+ota:
+  safe_mode: True
+  password: !secret esphome_ota_password
+
+######################### SENSORS #########################
+sensor:
+  - <<: !include sensor/uptime.yaml
+  - <<: !include sensor/wifi_signal.yaml
+binary_sensor:
+  - <<: !include binary_sensor/connection_status.yaml
+text_sensor:
+  - <<: !include text_sensor/wifi_info.yaml
+  - <<: !include text_sensor/esphome_version.yaml
+...

@@ -1,0 +1,85 @@
+---
+######################### GENERAL #########################
+substitutions:
+  node_name: lcs_socket
+  node_friendly_name: LCS socket
+  friendly_id: LCS_socket
+  comment: LCS (action) socket socket
+  # Time settings
+  reboot_timeout: 15min
+  global_update_interval: 60sec
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include common/device_base.yaml
+
+######################### DEVICE SETTINGS #########################
+esphome:
+  platform: ESP8266
+  board: esp01_1m
+
+wifi:
+  # Optional manual IP
+  manual_ip:
+    static_ip: 192.168.178.31
+    gateway: 192.168.178.1
+    subnet: 255.255.255.0
+
+######################### LOGGING #########################
+logger:
+#  baud_rate: 0 # disable UART logging
+#  level: NONE
+#  level: ERROR
+#  level: WARN
+  level: INFO
+#  level: DEBUG
+#  level: VERBOSE
+#  level: VERY_VERBOSE
+
+#status_led:
+#  pin:
+#    number: GPIO04
+#    inverted: True #Normally off
+
+####################################################################
+###################### DETAILED CONFIGURATION ######################
+####################################################################
+
+######################### BINARY SENSORS #########################
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 13
+      mode: INPUT_PULLUP
+      inverted: false
+    name: "$node_friendly_name ON/OFF Button"
+    internal: true
+    on_press:
+      - switch.toggle: relay
+
+######################### SENSORS #########################
+sensor:
+
+######################### TEXT SENSORS #########################
+text_sensor:
+
+######################### SWITCH #########################
+switch:
+  - platform: gpio
+    id: blue_led
+    internal: True
+    pin:
+      number: GPIO04
+      inverted: true
+  - platform: gpio
+    name: $node_friendly_name relay
+    pin: GPIO12
+    id: relay
+    # Turn off blue LED when turned on
+    on_turn_on:
+      - switch.turn_on: blue_led
+
+    # Turns on the blue LED once the plug is turned off
+    on_turn_off:
+      - switch.turn_off: blue_led
+...

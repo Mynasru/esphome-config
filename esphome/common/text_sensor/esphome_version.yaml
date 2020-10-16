@@ -1,0 +1,4 @@
+---
+platform: version
+name: ${node_friendly_name} ESPHome version
+...

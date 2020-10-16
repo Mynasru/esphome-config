@@ -1,0 +1,325 @@
+---
+######################### GENERAL #########################
+substitutions:
+  node_name: slimmer_dimmer
+  node_friendly_name: Slimmer Dimmer
+  friendly_id: Slimmer_dimmer
+  comment: Emil's slimmer dimmer v1
+  # Time settings
+  reboot_timeout: 15min
+  global_update_interval: 60sec
+
+  # Use the native API or MQTT, MQTT + Zigbee2MQTT is superior by 10 fold
+  use_native_api: "false"
+  dimming_interval: "0.25" # in seconds, native api no lower than 1, non native (mqtt) can go as low as 0.25
+  mqtt_light_topic: "zigbee2mqtt/living_room/set"
+  native_light_id: "light.living_room"
+  # Play around with these
+  default_brightness: "10" # range between 0 - 21 inclusive
+  brightness_leds: "40%" # value too low can cause inconsistent color reproduction
+  timeout_leds: "5s" # in seconds, time for only one led to show after a change
+  # Best not touch these
+  total_leds: "24"
+  ring_leds: "21"
+  auto_leds: "3"
+
+######################### MQTT #########################
+mqtt:
+  broker: 192.168.1.150
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include common/device_base.yaml
+
+######################### DEVICE SETTINGS #########################
+esphome:
+  platform: ESP8266
+  board: esp12e
+  on_boot:
+    priority: -100
+    then:
+    # absolute hacks, otherwise LED ring won't work with addressable_set
+    - script.execute: set_ring_on 
+    - delay: 3s
+    - script.execute: set_ring_off
+
+wifi:
+  # Optional manual IP
+#  manual_ip:
+#    static_ip: 192.168.178.31
+#    gateway: 192.168.178.1
+#    subnet: 255.255.255.0
+
+######################### LOGGING #########################
+logger:
+#  baud_rate: 0 # disable UART logging
+#  level: NONE
+#  level: ERROR
+#  level: WARN
+#  level: INFO
+  level: DEBUG
+#  level: VERBOSE
+#  level: VERY_VERBOSE
+
+status_led:
+  pin:
+    number: GPIO02
+    inverted: True #Normally off
+
+####################################################################
+###################### DETAILED CONFIGURATION ######################
+####################################################################
+
+######################### BINARY SENSORS #########################
+binary_sensor:
+  - platform: gpio
+    internal: false
+    pin: GPIO0
+    name: $node_friendly_name Switch
+  - platform: gpio
+    internal: true
+    pin: GPIO5
+    name: $node_friendly_name Rotary encoder switch
+    on_click:
+    - min_length: 0ms
+      max_length: 350ms
+      then:
+        - sensor.rotary_encoder.set_value:
+            id: rotary
+            value: !lambda "return ((id(rotary).state > 0) ? 0 : $default_brightness);"
+    - min_length: 350ms
+      max_length: 100000ms
+      then:
+        # Update the rotary encoder state to reflect auto brightness, without sending this brightness
+        - globals.set:
+            id: control_brightness
+            value: "false"
+        - sensor.rotary_encoder.set_value:
+            id: rotary
+            value: !lambda return (id(auto_brightness).state / (255 / $ring_leds));
+        - globals.set:
+            id: control_brightness
+            value: "true"
+        # Update state to automatic, set lights, automations and ring accordingly 
+        - globals.set:
+            id: is_automatic
+            value: "true"
+        - script.execute: set_lights    
+        - script.execute: set_automations
+        - script.execute: set_auto
+        - script.execute: set_active_ring
+
+######################### SENSORS #########################
+sensor:
+  - platform: homeassistant
+    name: "Auto kelvin"
+    id: auto_kelvin
+    entity_id: input_number.kelvin
+    internal: true
+  - platform: homeassistant
+    name: "Auto brightness"
+    id: auto_brightness
+    entity_id: input_number.brightness
+    internal: true
+    on_value:
+      if:
+        condition:
+          lambda: 'return id(is_automatic);'
+        then:
+          - script.execute: set_auto_brightness_on_ring
+  - platform: rotary_encoder
+    internal: true
+    id: rotary
+    name: $node_friendly_name Rotary Encoder
+    pin_a:
+      number: GPIO14
+#      mode: INPUT_PULLUP
+    pin_b:
+      number: GPIO12
+#      mode: INPUT_PULLUP
+    min_value: 0
+    max_value: $ring_leds
+    filters:
+      - lambda: return x * (255 / $ring_leds);
+      - heartbeat: $dimming_interval s
+      - delta: 1 # Prevent sending heartbeats when there are no changes
+    on_value:
+      if:
+        condition:
+          lambda: 'return id(control_brightness);'
+        then:
+          - script.execute: set_lights
+          - script.execute: set_automations
+    on_raw_value:
+      - globals.set:
+          id: is_automatic
+          value: "false"
+      - script.execute: set_auto
+      - script.execute: set_active_ring
+      - script.execute: set_timed_out_ring
+######################### TEXT SENSORS #########################
+text_sensor:
+
+######################### SWITCH #########################
+switch:
+
+######################### LIGHT #########################
+light:
+  - platform: fastled_clockless
+    chipset: WS2812
+    pin: GPIO13
+    num_leds: $total_leds
+    rgb_order: GRB
+    name: $node_friendly_name LED Ring
+    id: ring
+    internal: true
+
+
+######################### SCRIPTS #########################
+script:
+  - id: set_active_ring
+    then:
+      - light.addressable_set:
+          id: ring
+          red: !lambda "return id(is_automatic) ? id(color_auto)[0] : id(color_manual)[0];"
+          green: !lambda "return id(is_automatic) ? id(color_auto)[1] : id(color_manual)[1];"
+          blue: !lambda "return id(is_automatic) ? id(color_auto)[2] : id(color_manual)[2];"
+          range_from: 1
+          range_to: !lambda return id(rotary).raw_state;
+      - light.addressable_set:
+          id: ring
+          red: 0
+          green: 0
+          blue: 0
+          range_to: $ring_leds
+          range_from: !lambda return id(rotary).raw_state + 1;
+  - id: set_timed_out_ring
+    then:
+      - script.stop: set_timed_out_ring
+      - delay: $timeout_leds
+      - script.execute: set_ring_off
+      - light.addressable_set:
+          id: ring
+          red: !lambda "return id(is_automatic) ? id(color_auto)[0] : id(color_manual)[0];"
+          green: !lambda "return id(is_automatic) ? id(color_auto)[1] : id(color_manual)[1];"
+          blue: !lambda "return id(is_automatic) ? id(color_auto)[2] : id(color_manual)[2];"
+          range_from: !lambda "return id(rotary).raw_state == 0 ? 1 : id(rotary).raw_state;"
+          range_to: !lambda return id(rotary).raw_state;
+  - id: set_auto
+    then:
+      - light.addressable_set:
+          id: ring
+          red: !lambda "return id(is_automatic) ? id(color_auto)[0] : 0;"
+          green: !lambda "return id(is_automatic) ? id(color_auto)[1] : 0;"
+          blue: !lambda "return id(is_automatic) ? id(color_auto)[2] : 0;"
+          range_from: 0
+          range_to: 0
+      - light.addressable_set:
+          id: ring
+          red: !lambda "return id(is_automatic) ? id(color_auto)[0] : 0;"
+          green: !lambda "return id(is_automatic) ? id(color_auto)[1] : 0;"
+          blue: !lambda "return id(is_automatic) ? id(color_auto)[2] : 0;"
+          range_from: 22
+          range_to: 24
+  - id: set_ring_off
+    then:
+      - light.addressable_set:
+          id: ring
+          red: 0
+          green: 0
+          blue: 0
+          range_from: 0
+          range_to: $total_leds
+  - id: set_ring_on
+    then:
+      - light.turn_on:
+          id: ring
+          red: 0
+          green: 100%
+          blue: 0
+          brightness: $brightness_leds
+  - id: set_automations
+    then:
+      - homeassistant.service:
+          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
+          data: 
+            entity_id: automation.entered_sitting_area
+      - homeassistant.service:
+          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
+          data: 
+            entity_id: automation.entered_room
+      - homeassistant.service:
+          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
+          data: 
+            entity_id: automation.all_off_when_sleeping
+  - id: set_lights
+    then:
+      - if:
+          condition:
+            lambda: "return $use_native_api;"
+          then:
+            - homeassistant.service:
+                service: light.turn_on
+                data_template:
+                  entity_id: light.living_room
+                  brightness: "{{ rotary | int }}"
+                  transition: "$dimming_interval"
+                variables:
+                  rotary: |-
+                    return id(rotary).state;
+          else:
+            - mqtt.publish_json:
+                topic: !lambda return "$mqtt_light_topic";
+                payload: |-
+                  root["brightness"] = id(rotary).state;
+                  root["transition"] = $dimming_interval;
+      - logger.log:
+            format: "Lights controlled: %f "
+            args: [ 'id(rotary).state' ]
+  - id: set_auto_brightness_on_ring
+    then:
+      # Update the rotary encoder state to reflect auto brightness, without sending this brightness
+      - globals.set:
+          id: control_brightness
+          value: "false"
+      - sensor.rotary_encoder.set_value:
+          id: rotary
+          value: !lambda return id(auto_brightness).state / (255 / $ring_leds);
+      - script.execute: set_ring_off
+      # Update state to automatic, set ring accordingly 
+      - globals.set:
+          id: is_automatic
+          value: "true"
+      - light.addressable_set:
+          id: ring
+          red: !lambda "return id(is_automatic) ? id(color_auto)[0] : id(color_manual)[0];"
+          green: !lambda "return id(is_automatic) ? id(color_auto)[1] : id(color_manual)[1];"
+          blue: !lambda "return id(is_automatic) ? id(color_auto)[2] : id(color_manual)[2];"
+          range_from: !lambda "return id(rotary).raw_state == 0 ? 1 : id(rotary).raw_state;"
+          range_to: !lambda return id(rotary).raw_state;
+      # Enabling this variable immediately will cause it to run before the rotary encoder brightness is set.
+      # In turn this means the light is controlled immediately, which is what we specifically don't want.
+      # This hack works...
+      - delay: 1s
+      - globals.set:
+          id: control_brightness
+          value: "true"
+
+######################### GLOBAL VARIABLES #########################
+globals:
+  # Colors used in different states
+  - id: color_manual
+    type: int[3]
+    initial_value: "{230, 204, 128}"
+  - id: color_auto
+    type: int[3]
+    initial_value: "{0, 0, 204}"
+  - id: is_automatic
+    type: bool
+    restore_value: yes
+    initial_value: "false"
+  - id: control_brightness
+    type: bool
+    restore_value: yes
+    initial_value: "true"
+...

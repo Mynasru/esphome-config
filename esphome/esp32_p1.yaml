@@ -1,0 +1,127 @@
+---
+######################### GENERAL #########################
+substitutions:
+  node_name: esp32_p1
+  node_friendly_name: ESP32 P1
+  friendly_id: ESP32_p1
+  comment: Rubens ESP32 P1 dev board
+  # Time settings
+  reboot_timeout: 15min
+  global_update_interval: 60sec
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include common/device_base.yaml
+
+######################### DEVICE SETTINGS #########################
+esphome:
+  platform: ESP32
+  board: esp-wrover-kit
+
+wifi:
+  # Optional manual IP
+  manual_ip:
+    static_ip: 192.168.178.32
+    gateway: 192.168.178.1
+    subnet: 255.255.255.0
+
+status_led:
+  pin:
+    number: GPIO02 #= D4
+    inverted: True #Normally off
+
+######################### LOGGING #########################
+logger:
+#  baud_rate: 0 # disable UART logging
+#  level: NONE
+#  level: ERROR
+#  level: WARN
+#  level: INFO
+  level: DEBUG
+#  level: VERBOSE
+#  level: VERY_VERBOSE
+
+####################################################################
+###################### DETAILED CONFIGURATION ######################
+####################################################################
+
+######################### BINARY SENSORS #########################
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO12
+      #mode: INPUT_PULLUP
+      #inverted: True
+    name: $node_friendly_name Button 1
+    on_press:
+      then:
+        - rtttl.play: 'MissionImp:d=16,o=6,b=95:32d,32d#,32d,32d#,32d,32d#,32d,32d#,32d,32d,32d#,32e,32f,32f#,32g,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,a#,g,2d,32p,a#,g,2c#,32p,a#,g,2c,a#5,8c,2p,32p,a#5,g5,2f#,32p,a#5,g5,2f,32p,a#5,g5,2e,d#,8d'
+  - platform: gpio
+    pin:
+      number: GPIO13
+      #mode: INPUT_PULLUP
+      #inverted: True
+    name: $node_friendly_name Button 2
+    on_press:
+      then:
+        - rtttl.stop
+  - platform: gpio
+    pin:
+      number: GPIO19
+      #mode: INPUT_PULLUP
+      #inverted: True
+    name: $node_friendly_name Pulse 1
+  - platform: gpio
+    pin:
+      number: GPIO18
+      #mode: INPUT_PULLUP
+      #inverted: True
+    name: $node_friendly_name Pulse 2
+  - platform: gpio
+    pin:
+      number: GPIO21
+      #mode: INPUT_PULLUP
+      #inverted: True
+    name: $node_friendly_name RXD1
+  - platform: gpio
+    pin:
+      number: GPIO23
+      #mode: INPUT_PULLUP
+      #inverted: True
+    name: $node_friendly_name REQ
+
+######################### OUTPUT #########################
+output:
+  - platform: ledc
+    pin: GPIO14
+    frequency: 2441Hz
+    id: rtttl_out
+
+######################### RTTTL #########################
+rtttl:
+  output: rtttl_out
+
+######################### LIGHT #########################
+light:
+  - platform: fastled_clockless
+    chipset: WS2812B
+    pin: GPIO04
+    num_leds: 3
+    rgb_order: GRB
+    name: $node_friendly_name Light
+    effects:
+      - addressable_twinkle:
+      - addressable_random_twinkle:
+      - addressable_color_wipe:
+
+######################### SENSORS #########################
+<<: !include common/sensor/time.yaml
+sensor:
+
+######################### TEXT SENSORS #########################
+text_sensor:
+
+######################### SWITCH #########################
+switch:
+
+...

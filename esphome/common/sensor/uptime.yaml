@@ -1,0 +1,7 @@
+---
+platform: uptime
+name: ${node_friendly_name} uptime
+update_interval: ${global_update_interval}
+unit_of_measurement: h
+filters:
+  - lambda: return int((x + 1800.0) / 3600.0);

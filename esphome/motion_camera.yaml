@@ -1,0 +1,126 @@
+---
+######################### GENERAL #########################
+substitutions:
+  node_name: motion_camera
+  node_friendly_name: Motion camera
+  friendly_id: Motion_camera
+  comment: TTGO TCamera v05
+  # Time settings
+  reboot_timeout: 15min
+  global_update_interval: 60sec
+  # Fonts
+  font_comic_sans_ms3_ttf: "/config/esphome/common/fonts/ComicSansMS3.ttf"
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include common/device_base.yaml
+
+######################### DEVICE SETTINGS #########################
+esphome:
+  platform: ESP32
+  board: esp-wrover-kit
+
+wifi:
+  # Optional manual IP
+#  manual_ip:
+#    static_ip: 192.168.178.xx
+#    gateway: 192.168.178.1
+#    subnet: 255.255.255.0
+
+######################### LOGGING #########################
+logger:
+#  baud_rate: 0 # disable UART logging
+#  level: NONE
+#  level: ERROR
+#  level: WARN
+  level: INFO
+#  level: DEBUG
+#  level: VERBOSE
+#  level: VERY_VERBOSE
+
+####################################################################
+###################### DETAILED CONFIGURATION ######################
+####################################################################
+
+######################### I2C #########################
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+
+######################### FONTS #########################
+font:
+  - file: $font_comic_sans_ms3_ttf
+    id: font_comic_sans_ms3_ttf_12
+    size: 12
+  - file: $font_comic_sans_ms3_ttf
+    id: font_comic_sans_ms3_ttf_20
+    size: 20
+
+######################### CAMERA #########################
+esp32_camera:
+  name: $node_friendly_name Cam
+  external_clock:
+    pin: GPIO32
+    frequency: 20MHz
+  i2c_pins:
+    sda: GPIO13
+    scl: GPIO12
+  data_pins: [GPIO5, GPIO14, GPIO4, GPIO15, GPIO18, GPIO23, GPIO36, GPIO39]
+  vsync_pin: GPIO27
+  href_pin: GPIO25
+  pixel_clock_pin: GPIO19
+  power_down_pin: GPIO26
+  resolution: 640x480
+  jpeg_quality: 10
+  vertical_flip: true
+#  vertical_flip: false
+  horizontal_mirror: false
+
+######################### DISPLAY #########################
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    address: 0x3C
+    id: ${display_id}
+    rotation: 0°
+
+######################### BINARY SENSORS #########################
+binary_sensor:
+  - platform: gpio
+    pin: GPIO33
+    name: $node_friendly_name PIR
+    device_class: motion
+  - platform: gpio
+    pin:
+      number: GPIO34
+      mode: INPUT_PULLUP
+      inverted: True
+    name: $node_friendly_name Button
+
+######################### SENSORS #########################
+sensor:
+  - platform: adc
+    pin: 35 #ADC1_CH7
+    name: $node_friendly_name Battery Level
+    update_interval: global_update_interval
+    attenuation: 11db # attenuation = 6dB = max 2.2v, 11dB = 3.9v
+    filters:
+      - sliding_window_moving_average:
+          window_size: 15
+          send_every: 15
+        # resistor devider is 100K/100K 1:1
+        # battery voltage 0% = 3.3v, 100% = 4.2v
+        # ADC voltage 1.65v = 0% battery, 2.1v = 100% battery
+      - calibrate_linear:
+          - 1.65 -> 0.0
+          - 2.1 -> 100.0
+    icon: "mdi:battery"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+######################### TEXT SENSORS #########################
+text_sensor:
+
+######################### SWITCH #########################
+switch:
+...
