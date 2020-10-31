@@ -1,2 +1,3 @@
 # Don not include font files (licencing problems)
 *.ttf
+.DS_Store
