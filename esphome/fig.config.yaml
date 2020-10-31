@@ -1,0 +1,41 @@
+---
+######################### GENERAL #########################
+substitutions:
+  node_name: fig
+  node_friendly_name: Fig
+  comment: TTGO Hi-Grow v1.1 Plant sensor
+
+  # Time settings
+  reboot_timeout: 10min
+  global_update_interval: 2sec
+  # Deep sleep 
+  deep_sleep_runtime: 35s
+  deep_sleep_sleepime: 10min
+
+  # Sensor calibration
+  # Battery
+  battcallmin: "1.5"
+  battcallmax: "2.2"
+  # Soil moisture
+  soilmoistmin: "3.0"
+  soilmoistmax: "1.36"
+  # Soil salt
+  soilsaltmin: "0.0"
+  soilsaltmax: "0.52"
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include devices/ttgo_higrow.yaml
+
+######################### WIFI #########################
+wifi:
+  # Optional manual IP
+  manual_ip:
+    static_ip: 192.168.178.41
+    gateway: 192.168.178.1
+    subnet: 255.255.255.0
+
+######################### WIFI #########################
+logger:
+  level: INFO
+...

@@ -1,0 +1,48 @@
+---
+binary_sensor:
+  - platform: homeassistant
+    name: "ESPHome OTA enable for deepsleep"
+    entity_id: input_boolean.esphome_ota_enable
+    id: esphome_ota_enable
+    internal: True
+    on_state:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_on: esphome_ota_enable
+            then:
+              - logger.log: "Preventing deep sleep, Home Assistant activated"
+              - deep_sleep.prevent: deep_sleep_1
+              - switch.turn_on: spower
+              - light.turn_on:
+                  id: ota_indicator
+            else:
+              - logger.log: "Entering deep sleep, Home Assistant activated"
+              - light.turn_off:
+                  id: ota_indicator
+              - switch.turn_off: spower
+              - deep_sleep.enter: deep_sleep_1
+
+esphome:
+  on_boot:
+    priority: -200
+    then:
+      - wait_until:
+          api.connected:
+      - delay: 2s
+      - logger.log: "Checking sleep"
+      - lambda: |-
+          if (id(disable_sleep_button).state) {
+            ESP_LOGD("main", "Button prevent sleep");
+            id(deep_sleep_1).prevent_deep_sleep();
+          } else {
+            ESP_LOGD("main", "Allow sleep");
+          }
+          if(id(esphome_ota_enable).state) {
+            ESP_LOGD("main", "HA prevent sleep");
+            id(deep_sleep_1).prevent_deep_sleep();
+          } else {
+            ESP_LOGD("main", "HA allow sleep");
+          }
+      - logger.log: "Sleep checked"
+...

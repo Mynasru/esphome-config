@@ -3,11 +3,14 @@
 esphome:
   name: ${node_name}
   comment: ${comment}
+  board: ${node_board}
+  platform: ${node_platform}
   build_path: ./build/${node_name}
 
 ######################### LOGGING #########################
 logger:
-#  level: ${log_level}
+  level: DEBUG
+  baud_rate: 115200
 
 ######################### WIFI #########################
 wifi:
@@ -31,14 +34,4 @@ api:
 ota:
   safe_mode: True
   password: !secret esphome_ota_password
-
-######################### SENSORS #########################
-sensor:
-  - <<: !include sensor/uptime.yaml
-  - <<: !include sensor/wifi_signal.yaml
-binary_sensor:
-  - <<: !include binary_sensor/connection_status.yaml
-text_sensor:
-  - <<: !include text_sensor/wifi_info.yaml
-  - <<: !include text_sensor/esphome_version.yaml
 ...

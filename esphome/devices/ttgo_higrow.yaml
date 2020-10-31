@@ -1,41 +1,28 @@
-
-######################### GENERAL #########################
+---
+#####################################################
+###################### GENERAL ######################
+#####################################################
 substitutions:
-  node_name: hi_grow
-  node_friendly_name: Hi Grow
-  friendly_id: Hi_Grow
-  comment: TTGO Hi-Grow v1.1 Plant sensor
-  # Time settings
-  reboot_timeout: 15min
-  global_update_interval: 360sec
+  node_platform: ESP32
+  node_board: esp-wrover-kit
 
 ######################### PACKAGES #########################
 packages:
-  device_base: !include common/device_base.yaml
+  device_base: !include ../common/device_base.yaml
+  basic_sensors: !include ../common/basic_sensors.yaml
+  disable_sleep: !include ../common/binary_sensor/disable_sleep.yaml
 
-######################### DEVICE SETTINGS #########################
-esphome:
-  platform: ESP32
-  board: esp-wrover-kit
-
-wifi:
-  # Optional manual IP
-  manual_ip:
-    static_ip: 192.168.178.41
-    gateway: 192.168.178.1
-    subnet: 255.255.255.0
+######################### DEEP SLEEP #########################
+deep_sleep:
+  run_duration: ${deep_sleep_runtime}
+  sleep_duration: ${deep_sleep_sleepime}
+  wakeup_pin:
+    number: GPIO35
+    inverted: True
+    mode: INPUT_PULLUP
+  id: deep_sleep_1
 
 ######################### LOGGING #########################
-logger:
-#  baud_rate: 0 # disable UART logging
-#  level: NONE
-#  level: ERROR
-#  level: WARN
-#  level: INFO
-  level: DEBUG
-#  level: VERBOSE
-#  level: VERY_VERBOSE
-
 status_led:
   pin:
     number: GPIO27
@@ -48,11 +35,13 @@ status_led:
 ######################### LIGHT #########################
 light:
   - platform: binary
-    name: "$node_friendly_name OTA Indicator"
+    name: "${node_friendly_name} OTA Indicator"
     output: gpio_23
     internal: True
+    id: ota_indicator
 
 ######################### OUTPUT #########################
+# OTA indicator LED
 output:
   - platform: gpio
     pin: GPIO23
@@ -72,19 +61,34 @@ switch:
       number: GPIO4
       inverted: False
       mode: OUTPUT
-    name: "$node_friendly_name Sensor Power"
+    name: "${node_friendly_name} Sensor Power"
     id: spower
     restore_mode: ALWAYS_ON
     internal: true
 
 ######################### BINARY SENSORS #########################
+# Prevent deep sleep button
 binary_sensor:
   - platform: gpio
     pin: 
       number: GPIO35
       mode: INPUT_PULLUP
       inverted: True
-    name: "$node_friendly_name Wake Button"
+    id: disable_sleep_button
+    name: "${node_friendly_name} Wake + disable sleep Button"
+    internal: true
+    on_press:
+      then:
+        - homeassistant.service:
+            service: input_boolean.toggle
+            data:
+              entity_id: input_boolean.esphome_ota_enable
+        - logger.log: "Toggleing input_boolean.esphome_ota_enable value"
+#        - logger.log: "Preventing deep sleep, user (button) activated"
+#        - deep_sleep.prevent: deep_sleep_1
+#        - switch.turn_on: spower
+        - light.toggle:
+            id: ota_indicator
 
 ######################### SENSORS #########################
 sensor:
@@ -94,30 +98,31 @@ sensor:
       number: GPIO16
       mode: input
     temperature:
-      name: "$node_friendly_name Temperature"
+      name: "${node_friendly_name} Temperature"
     humidity:
-      name: "$node_friendly_name Humidity"
-    update_interval: $global_update_interval
+      name: "${node_friendly_name} Humidity"
+    update_interval: ${global_update_interval}
     setup_priority: -100
     
   - platform: adc
     pin: GPIO33
-    name: "$node_friendly_name Battery"
-    attenuation: 6db
+    name: "${node_friendly_name} Battery"
+    attenuation: 11db
     unit_of_measurement: '%'
     accuracy_decimals: 0
     icon: mdi:battery-charging
-    update_interval: $global_update_interval
+    update_interval: ${global_update_interval}
     filters:
       - calibrate_linear:
-          - 0.0 -> 0.0
-          - 2.2 -> 100
+          #- 0.0 -> 0.0
+          - ${battcallmin} -> 0.0
+          - ${battcallmax} -> 100
     
   - platform: adc
     pin: GPIO32
-    name: "$node_friendly_name Soil Humidity"
+    name: "${node_friendly_name} Soil Humidity"
     attenuation: 11db
-    update_interval: $global_update_interval
+    update_interval: ${global_update_interval}
     unit_of_measurement: '%'
     filters:
       - sliding_window_moving_average:
@@ -126,14 +131,14 @@ sensor:
           send_first_at: 1
       - calibrate_linear:
           # Map 0.0 (from sensor) to 0.0 (true value)
-          - 3.0 -> 0.0
-          - 1.36 -> 100.0
+          - ${soilmoistmin} -> 0.0
+          - ${soilmoistmax} -> 100.0
         
   - platform: adc
     pin: GPIO34
-    name: "$node_friendly_name Soil Salt"
+    name: "${node_friendly_name} Soil Salt"
     attenuation: 0db
-    update_interval: $global_update_interval
+    update_interval: ${global_update_interval}
     unit_of_measurement: '%'
     filters:
       - sliding_window_moving_average:
@@ -142,10 +147,12 @@ sensor:
           send_first_at: 1
       - calibrate_linear:
           # Map 0.0 (from sensor) to 0.0 (true value)
-          - 0.0 -> 0.0
-          - 0.52 -> 100.0
+          - ${soilsaltmin} -> 0.0
+          - ${soilsaltmax} -> 100.0
     
   - platform: bh1750
-    name: "$node_friendly_name Illuminance"
+    name: "${node_friendly_name} Illuminance"
     address: 0x23
-    update_interval: $global_update_interval
+    update_interval: ${global_update_interval}
+    setup_priority: -100
+...

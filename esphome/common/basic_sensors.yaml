@@ -1,0 +1,11 @@
+---
+######################### BASIC SENSORS #########################
+sensor:
+  - <<: !include ../common/sensor/uptime.yaml
+  - <<: !include ../common/sensor/wifi_signal.yaml
+binary_sensor:
+  - <<: !include ../common/binary_sensor/connection_status.yaml
+text_sensor:
+  - <<: !include ../common/text_sensor/wifi_info.yaml
+  - <<: !include ../common/text_sensor/esphome_version.yaml
+...
