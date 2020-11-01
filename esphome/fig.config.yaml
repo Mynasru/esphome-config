@@ -9,8 +9,8 @@ substitutions:
   reboot_timeout: 10min
   global_update_interval: 2sec
   # Deep sleep 
-  deep_sleep_runtime: 35s
-  deep_sleep_sleepime: 10min
+  deep_sleep_runtime: 60s
+  deep_sleep_sleepime: 59min
 
   # Sensor calibration
   # Battery

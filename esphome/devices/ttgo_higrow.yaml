@@ -22,6 +22,11 @@ deep_sleep:
     mode: INPUT_PULLUP
   id: deep_sleep_1
 
+esphome:
+  on_shutdown:
+    then:
+      - switch.turn_off: spower
+
 ######################### LOGGING #########################
 status_led:
   pin:
@@ -51,7 +56,7 @@ output:
 i2c:
   sda: 25
   scl: 26
-#  scan: True
+  scan: True
   id: bus_a
 
 ######################### SWITCH #########################
@@ -153,6 +158,7 @@ sensor:
   - platform: bh1750
     name: "${node_friendly_name} Illuminance"
     address: 0x23
+    i2c_id: bus_a
     update_interval: ${global_update_interval}
     setup_priority: -100
 ...
