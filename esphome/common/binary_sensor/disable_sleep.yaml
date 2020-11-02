@@ -23,6 +23,11 @@ binary_sensor:
               - switch.turn_off: spower
               - deep_sleep.enter: deep_sleep_1
 
+# Devices with deep sleep prevent need a reboot to activate deepsleep again
+switch:
+  - platform: restart
+    name: "${node_friendly_name} Restart"
+
 esphome:
   on_boot:
     priority: -200
