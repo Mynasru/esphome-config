@@ -1,0 +1,9 @@
+---
+platform: bh1750
+name: ${node_friendly_name} Illuminance
+address: 0x23 #0x5C
+measurement_time: 69 #31-254 = 121556lx-14835lx
+resolution: 0.5 #4.0, 1.0, 0.5 lx
+update_interval: ${global_update_interval}
+i2c_id: bus_a
+...

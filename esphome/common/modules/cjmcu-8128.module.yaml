@@ -1,0 +1,6 @@
+---
+sensor:
+- <<: !include ../common/sensor/bme280.yaml
+- <<: !include ../common/sensor/ccs811.yaml
+- <<: !include ../common/sensor/hdc1018.yaml
+...

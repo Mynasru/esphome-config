@@ -1,0 +1,12 @@
+---
+platform: pmsx003
+type: PMSX003
+pm_1_0:
+  name: ${node_friendly_name} PM1 Concentration
+pm_2_5:
+  name: ${node_friendly_name} PM2.5 Concentration
+pm_10_0:
+  name: ${node_friendly_name} PM10 Concentration
+update_interval: ${global_update_interval}
+uart_id: uart_a
+...

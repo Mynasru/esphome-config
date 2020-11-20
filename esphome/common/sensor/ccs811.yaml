@@ -1,0 +1,13 @@
+---
+platform: ccs811
+eco2:
+  name: ${node_friendly_name} eCO2 Value
+tvoc:
+  name: ${node_friendly_name} VOC
+address: 0x5A
+update_interval: ${global_update_interval}
+#baseline: ${ccs811_baseline}
+temperature: temperature_sensor
+humidity: humidity_sensor
+i2c_id: bus_a
+...
