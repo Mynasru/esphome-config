@@ -1,8 +1,10 @@
 # esphome-config
 Modularised ESPHome configurations with substitutions and packages
 
+:red_circle: Not (yet) updated to new modular config system
+:white_check_mark: Ready for use config
 ## Devices
-<details><summary>LCS Power plug</summary>
+<details><summary>:red_circle: LCS Power plug</summary>
 
 (Store: Action)([info](https://templates.blakadder.com/lsc_smart_connect_power_plug.html))
 
@@ -11,7 +13,7 @@ Modularised ESPHome configurations with substitutions and packages
 - GPIO13 = Button (input pullup)
 </details>
 
-<details><summary>TTGO Tcamera v05</summary>
+<details><summary>:red_circle: TTGO Tcamera v05</summary>
 
 (Store: Aliexpress)([info](https://github.com/lewisxhe/esp32-camera-series/blob/master/schematic/OV2640_V05.pdf))
 
@@ -44,7 +46,7 @@ Modularised ESPHome configurations with substitutions and packages
     - GPIO35 = VBatt (100k/100k) (ADC1_CH7) (11dB) 1.65v = 0%, 2.10v = 100%
 </details>
 
-<details><summary>Emil's Slimmer dimmer</summary>
+<details><summary>:red_circle: Emil's Slimmer dimmer</summary>
 
 (Store: Emil)([info](https://github.com/EmilFlach/slimmer_dimmer_v2))
 
@@ -56,14 +58,14 @@ Modularised ESPHome configurations with substitutions and packages
 - GPIO00 = Switch (external input pullup)
 </details>
 
-<details><summary>ESP32 P1</summary>
+<details><summary>:red_circle: ESP32 P1</summary>
 
 (Store: Ruben)([info](https://github.com/Mynasru/))
 
 - 
 </details>
 
-<details><summary>Alarm clock</summary>
+<details><summary>:red_circle: Alarm clock</summary>
 
 (Store: Ruben)([info](https://github.com/Mynasru/))
 Based on the ESP32 P1 board
@@ -71,7 +73,7 @@ Based on the ESP32 P1 board
 - 
 </details>
 
-<details><summary>TTGO T-HiGrow V1.1</summary>
+<details><summary>:white_check_mark: TTGO T-HiGrow V1.1</summary>
 
 (Store: Aliexpress)([info](https://aliexpress.com/item/32962409404.html))
 
