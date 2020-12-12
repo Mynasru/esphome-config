@@ -1,6 +1,13 @@
 ---
 sensor:
-- <<: !include ../common/sensor/bme280.yaml
-- <<: !include ../common/sensor/ccs811.yaml
-- <<: !include ../common/sensor/hdc1018.yaml
+- <<: !include ../../common/sensor/bmp280.yaml
+- <<: !include ../../common/sensor/ccs811.yaml
+- <<: !include ../../common/sensor/htu21d.yaml
+
+- platform: template
+  name: ${node_friendly_name} Temperature avg
+  lambda: |-
+    return (id(temperature_sensor).state + id(temperature_sensor_2).state)/2;
+  update_interval: ${global_update_interval}
+  id: temperature_avg_sensor
 ...

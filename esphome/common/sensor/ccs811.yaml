@@ -8,6 +8,6 @@ address: 0x5A
 update_interval: ${global_update_interval}
 #baseline: ${ccs811_baseline}
 temperature: temperature_avg_sensor
-humidity: humidity_avg_sensor
+humidity: humidity_sensor
 i2c_id: bus_a
 ...

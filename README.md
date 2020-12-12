@@ -1,8 +1,9 @@
 # esphome-config
 Modularised ESPHome configurations with substitutions and packages
 
-:red_circle: Not (yet) updated to new modular config system
-:white_check_mark: Ready for use config
+- :red_circle: Not (yet) updated to new modular config system
+- :white_check_mark: Ready for use config
+- :eight_spoked_asterisk: Ready for use config for DIY circuit
 ## Devices
 <details><summary>:red_circle: LCS Power plug</summary>
 
@@ -87,4 +88,15 @@ Based on the ESP32 P1 board
 - GPIO33 = Battery ADC
 - GPIO32 = Soil humidity ADC
 - GPIO34 = Soil salt ADC
+</details>
+
+<details><summary>:eight_spoked_asterisk: Air quality sensors [DIY]</summary>
+
+Measure:
+- eCO2
+- eVOC
+- Temperature (2x)
+- Humidity
+- Pressure
+- PM (µm): 1, 2.5, 10
 </details>

@@ -1,0 +1,13 @@
+---
+platform: bmp280
+temperature:
+  name: ${node_friendly_name} Temperature
+  id: temperature_sensor
+pressure:
+  name: ${node_friendly_name} Pressure
+  id: pressure_sensor
+address: 0x76
+update_interval: ${global_update_interval}
+iir_filter: 4x #OFF, 2x, 4x, 16x
+i2c_id: bus_a
+...

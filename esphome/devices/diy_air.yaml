@@ -1,0 +1,51 @@
+---
+#####################################################
+###################### GENERAL ######################
+#####################################################
+substitutions:
+  node_platform: ESP32
+  node_board: esp-wrover-kit
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include ../common/device_base.yaml
+  basic_sensors: !include ../common/basic_sensors.yaml
+  cjmcu_8128_module: !include ../common/modules/cjmcu-8128.module.yaml
+
+######################### LOGGING #########################
+status_led:
+  pin:
+    number: GPIO5
+    inverted: True #Normally off
+
+####################################################################
+###################### DETAILED CONFIGURATION ######################
+####################################################################
+
+######################### OUTPUT #########################
+#PMSA003 RESET pin
+output:
+  - platform: gpio
+    pin:
+      number: GPIO14
+      mode: OUTPUT
+    id: PMSA003_RESET
+
+######################### UART #########################
+uart:
+  rx_pin: GPIO12
+  tx_pin: GPIO13
+  baud_rate: 9600
+  id: uart_1
+
+######################### I2C #########################
+i2c:
+  sda: 21
+  scl: 22
+  scan: True
+  id: bus_a
+
+######################### SENSORS #########################
+sensor:
+  - <<: !include ../common/sensor/pmsx003.yaml
+...

@@ -1,0 +1,31 @@
+---
+######################### GENERAL #########################
+substitutions:
+  node_name: air
+  node_friendly_name: Air
+  comment: Diy air quality sensor (temperature, pressure, VOC
+
+  # Time settings
+  reboot_timeout: 10min
+  global_update_interval: 10sec
+
+  # Sensor calibration
+  # Sensor calibration
+  #ccs811_baseline: 
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include devices/diy_air.yaml
+
+######################### WIFI #########################
+wifi:
+  # Optional manual IP
+  manual_ip:
+    static_ip: 192.168.178.45
+    gateway: 192.168.178.1
+    subnet: 255.255.255.0
+
+######################### LOGGER #########################
+logger:
+  level: INFO
+...

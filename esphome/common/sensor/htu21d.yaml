@@ -1,11 +1,12 @@
 ---
-platform: hdc1080
+platform: htu21d
 temperature:
-  name: ${node_friendly_name} Temperature
+  name: ${node_friendly_name} Temperature 2
   id: temperature_sensor_2
 humidity:
   name: ${node_friendly_name} Humidity
-  id: humidity_sensor_2
+  id: humidity_sensor
 update_interval: ${global_update_interval}
+address: 0x40
 i2c_id: bus_a
 ...
