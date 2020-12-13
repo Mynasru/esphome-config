@@ -10,4 +10,7 @@ sensor:
     return (id(temperature_sensor).state + id(temperature_sensor_2).state)/2;
   update_interval: ${global_update_interval}
   id: temperature_avg_sensor
+  icon: "mdi:thermometer"
+  accuracy_decimals: 1
+  unit_of_measurement: "˚C"
 ...

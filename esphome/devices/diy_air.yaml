@@ -28,7 +28,15 @@ esphome:
     priority: -10
     then:
     # Enable PMSA003
-      - output.turn_on: PMSA003_SET
+      - switch.turn_on: PMSA003_EN_SWITCH
+
+######################### SWITCH #########################
+switch:
+  - platform: output
+    name: "${node_friendly_name} PM Enable"
+    output: PMSA003_SET
+    icon: "mdi:fan"
+    id: PMSA003_EN_SWITCH
 
 ######################### OUTPUT #########################
 #PMSA003 SET/enable pin [LOW = Disabled]
