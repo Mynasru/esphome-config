@@ -22,14 +22,22 @@ status_led:
 ###################### DETAILED CONFIGURATION ######################
 ####################################################################
 
+######################### ON_BOOT #########################
+esphome:
+  on_boot:
+    priority: -10
+    then:
+    # Enable PMSA003
+      - output.turn_on: PMSA003_SET
+
 ######################### OUTPUT #########################
-#PMSA003 RESET pin
+#PMSA003 SET/enable pin [LOW = Disabled]
 output:
   - platform: gpio
     pin:
       number: GPIO14
       mode: OUTPUT
-    id: PMSA003_RESET
+    id: PMSA003_SET
 
 ######################### UART #########################
 uart:
@@ -42,7 +50,7 @@ uart:
 i2c:
   sda: 21
   scl: 22
-  scan: True
+  scan: False
   id: bus_a
 
 ######################### SENSORS #########################
