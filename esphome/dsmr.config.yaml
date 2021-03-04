@@ -18,10 +18,10 @@ packages:
 ######################### WIFI #########################
 wifi:
 # Optional manual IP
-  manual_ip:
-    static_ip: 192.168.178.32
-    gateway: 192.168.178.1
-    subnet: 255.255.255.0
+#  manual_ip:
+#    static_ip: 192.168.178.32
+#    gateway: 192.168.178.1
+#    subnet: 255.255.255.0
 
 ######################### LOGGER #########################
 logger:

@@ -60,7 +60,7 @@ class CustomP1UartComponent : public Component, public uart::UARTDevice {
   }  
    
   bool read_message() {
-	//ESP_LOGD("DmsrCustom","Read message");
+	ESP_LOGD("DmsrCustom","Read message");
 	headerfound = false;
 	footerfound = false;
 	telegramlen = 0;
@@ -82,7 +82,7 @@ class CustomP1UartComponent : public Component, public uart::UARTDevice {
 				bytes_read++;
 				c = read();
 				if (c == 47) { // header: forward slash
-					// ESP_LOGD("DmsrCustom","Header found");
+					ESP_LOGD("DmsrCustom","Header found");
 					headerfound = true;
 					telegramlen = 0;
 				}
@@ -96,11 +96,12 @@ class CustomP1UartComponent : public Component, public uart::UARTDevice {
 						if (footerfound && c == 10) { // last \n after footer
 							// Parse message
 							MyData data;
-							// ESP_LOGD("DmsrCustom","Trying to parse");
+							ESP_LOGD("DmsrCustom","Trying to parse");
 							ParseResult<void> res = P1Parser::parse(&data, telegram, telegramlen, false); // Parse telegram accoring to data definition. Ignore unknown values.
 							if (res.err) {
 								// Parsing error, show it
-								Serial.println(res.fullError(telegram, telegram + telegramlen));
+								//Serial.println(res.fullError(telegram, telegram + telegramlen));
+								ESP_LOGD("DmsrCustom","Error: Parsing failed");
 							} else {
 								publish_sensors(data);
 								return true; // break out function
@@ -166,8 +167,8 @@ class CustomP1UartComponent : public Component, public uart::UARTDevice {
 
   void setup() override {
     lastread = 0;
-	pinMode(REQ_PIN, OUTPUT); // Set D5 as output pin
-	digitalWrite(REQ_PIN,LOW); // Set low, don't request message from P1 port
+	//pinMode(REQ_PIN, OUTPUT); // Set D5 as output pin
+	//digitalWrite(REQ_PIN,LOW); // Set low, don't request message from P1 port
   }
   
   void loop() override {
@@ -175,11 +176,11 @@ class CustomP1UartComponent : public Component, public uart::UARTDevice {
 	
 	if (now - lastread > DELAY_MS || lastread == 0) {
 		lastread = now;
-		digitalWrite(REQ_PIN,HIGH); // Set high, request new message from P1 port
+		//digitalWrite(REQ_PIN,HIGH); // Set high, request new message from P1 port
 		if (data_available()) { // Check for x seconds if there's data available
 			bool have_message = read_message();
 			if (have_message) { 
-				digitalWrite(REQ_PIN,LOW); // Set low, stop requesting messages from P1 port
+				//digitalWrite(REQ_PIN,LOW); // Set low, stop requesting messages from P1 port
 			} // If No message was read, keep output port high and retry later
 		} else {
 				ESP_LOGD("DmsrCustom","No data available. Is P1 port connected?");
