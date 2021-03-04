@@ -1,0 +1,29 @@
+---
+######################### GENERAL #########################
+substitutions:
+  node_name: dsmr
+  node_friendly_name: DSMR
+  comment: P1 DSMR sensor for reading electricity and gas consumption in the Netherlands
+
+  # Time settings
+  reboot_timeout: 10min
+  global_update_interval: 60sec
+
+  # Sensor calibration
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include devices/dsmr.yaml
+
+######################### WIFI #########################
+wifi:
+# Optional manual IP
+  manual_ip:
+    static_ip: 192.168.178.32
+    gateway: 192.168.178.1
+    subnet: 255.255.255.0
+
+######################### LOGGER #########################
+logger:
+  level: DEBUG
+...

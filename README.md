@@ -59,11 +59,11 @@ Modularised ESPHome configurations with substitutions and packages
 - GPIO00 = Switch (external input pullup)
 </details>
 
-<details><summary>:red_circle: ESP32 P1</summary>
+<details><summary>:eight_spoked_asterisk: ESP32 P1 DSMR</summary>
 
 (Store: Ruben)([info](https://github.com/Mynasru/))
 
-- 
+- :red_circle: To do
 </details>
 
 <details><summary>:red_circle: Alarm clock</summary>
