@@ -1,0 +1,194 @@
+globals:
+  - id: color_active
+    type: int[3]
+    initial_value: "{0, 0, 204}"
+  - id: ring_position
+    type: int
+    initial_value: "0"
+
+substitutions:
+  # Best not touch these
+  total_leds: "24"
+  ring_leds: "23"
+  auto_leds: "1"
+
+light:
+  - platform: neopixelbus
+    pin: GPIO3
+    num_leds: $total_leds
+    name: ${node_friendly_name} LEDs
+    id: leds
+    internal: true
+  - platform: partition
+    name: ${node_friendly_name} Ring LEDs
+    id: ring
+    internal: true
+    segments:
+      - id: leds
+        from: 0
+        to: 22
+  - platform: partition
+    name: ${node_friendly_name} Auto LED
+    id: auto_led
+    internal: true
+    segments:
+      - id: leds
+        from: 23
+        to: 24
+
+script:
+  # Scripts that handle the states of the LED ring during usage
+  - id: active_ring_helper
+    then:
+    - light.addressable_set:
+        id: ring
+        red: !lambda "return id(color_active)[0];"
+        green: !lambda "return id(color_active)[1];"
+        blue: !lambda "return id(color_active)[2];"
+        range_from: 0
+        range_to: !lambda "return id(ring_position) == 23 ? 22 : id(ring_position);"
+    - light.addressable_set:
+        id: ring
+        red: 0
+        green: 0
+        blue: 0
+        range_to: 22
+        range_from: !lambda return id(ring_position);
+
+  - id: set_active_ring
+    mode: restart
+    then:
+      - while:
+          condition:
+            lambda: 'return id(rotary).raw_state != id(ring_position);'
+          then:
+          - script.execute: active_ring_helper
+          - if:
+              condition:
+                lambda: 'return id(rotary).raw_state > id(ring_position);'
+              then:    
+                - globals.set:
+                    id: ring_position
+                    value: !lambda return id(ring_position) + 1;
+          - if:
+              condition:
+                lambda: 'return id(rotary).raw_state < id(ring_position);'
+              then:    
+                - globals.set:
+                    id: ring_position
+                    value: !lambda return id(ring_position) - 1;               
+          - delay: 20ms
+          
+      # Hack, we need it to run one more time after     
+      - script.execute: active_ring_helper  
+
+  - id: set_timed_out_ring
+    mode: restart
+    then:
+      - delay: $timeout_leds
+      - script.execute: set_ring_off
+      - light.addressable_set:
+          id: ring
+          red: !lambda "return id(color_active)[0];"
+          green: !lambda "return id(color_active)[1];"
+          blue: !lambda "return id(color_active)[2];"
+          range_from: !lambda "return id(rotary).raw_state == 0 ? 1 : id(rotary).raw_state - 1;"
+          range_to: !lambda return id(rotary).raw_state - 1;
+
+  - id: set_auto
+    then:
+      - light.addressable_set:
+          id: auto_led
+          red: !lambda "return id(is_automatic) ? id(color_automatic)[0] : 0;"
+          green: !lambda "return id(is_automatic) ? id(color_automatic)[1] : 0;"
+          blue: !lambda "return id(is_automatic) ? id(color_automatic)[2] : 0;"
+          range_from: 0
+          range_to: 1
+  
+  - id: set_charging
+    mode: queued
+    then:
+      - light.addressable_set:
+          id: auto_led
+          red: 25%
+          green: 25%
+          blue: 0
+          range_from: 0
+          range_to: 1
+      - delay: 2s
+      - light.addressable_set:
+          id: auto_led
+          red: 40%
+          green: 40%
+          blue: 0
+          range_from: 0
+          range_to: 1
+      - delay: 2s
+      - light.addressable_set:
+          id: auto_led
+          red: 50%
+          green: 50%
+          blue: 0
+          range_from: 0
+          range_to: 1
+      - delay: 2s
+      - light.addressable_set:
+          id: auto_led
+          red: 0
+          green: 0
+          blue: 0
+          range_from: 0
+          range_to: 1
+      - delay: 2s
+
+  - id: set_charged
+    mode: queued
+    then:
+      - light.addressable_set:
+          id: auto_led
+          red: 0
+          green: 100%
+          blue: 0
+          range_from: 0
+          range_to: 1
+      - delay: 3s
+      - light.addressable_set:
+          id: auto_led
+          red: 0
+          green: 0
+          blue: 0
+          range_from: 0
+          range_to: 1
+
+  # Helpers for enabling and disabling the LED ring
+  - id: set_ring_off
+    then:
+      - light.addressable_set:
+          id: ring
+          red: 0
+          green: 0
+          blue: 0
+          range_from: 0
+          range_to: 22
+      - light.addressable_set:
+          id: auto_led
+          red: 0
+          green: 0
+          blue: 0
+          range_from: 0
+          range_to: 1
+  - id: set_ring_on
+    then:
+      - light.turn_on:
+          id: ring
+          red: 0
+          green: 100%
+          blue: 0
+          brightness: $brightness_leds
+      - light.turn_on:
+          id: auto_led
+          red: 0
+          green: 100%
+          blue: 0
+          brightness: $brightness_leds
+

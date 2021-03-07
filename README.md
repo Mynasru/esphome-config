@@ -47,16 +47,18 @@ Modularised ESPHome configurations with substitutions and packages
     - GPIO35 = VBatt (100k/100k) (ADC1_CH7) (11dB) 1.65v = 0%, 2.10v = 100%
 </details>
 
-<details><summary>:red_circle: Emil's Slimmer dimmer</summary>
+<details><summary>:white_check_mark: Emil's Slimmer dimmer</summary>
 
 (Store: Emil)([info](https://github.com/EmilFlach/slimmer_dimmer_v2))
 
-- GPIO02 = LED (inverted)
+- GPIO02 = Status LED (inverted)
 - GPIO05 = Rotary encoder switch (external input pullup)
 - GPIO14 = Rotary encoder A (external input pullup)
 - GPIO12 = Rotary encoder B (external input pullup)
-- GPIO13 = 24x WS2812B
-- GPIO00 = Switch (external input pullup)
+- GPIO02 = 24x WS2812B (RX pin)
+- RST    = Switch (external input pullup)
+- GPIO04 = STDBY (Charging done) pin
+- GPIO01 = CHRG (Charging) pin (TX pin)
 </details>
 
 <details><summary>:eight_spoked_asterisk: ESP32 P1 DSMR</summary>

@@ -1,0 +1,40 @@
+---
+######################### GENERAL #########################
+substitutions:
+  node_name: slimmer_dimmer
+  node_friendly_name: Slimmer Dimmer
+  comment: Emil's slimmer dimmer v2
+
+  # Time settings
+  reboot_timeout: 10min
+  global_update_interval: 60sec
+
+  # Node HA settings
+  mqtt_light_topic: "zigbee2mqtt/bedroom"
+  auto_brightness_id: "input_number.bedroom_brightness" # See the home_assistant_config_example for more info
+  auto_color_temp_id: "input_number.bedroom_color_temp" # See the home_assistant_config_example for more info
+  automation_group: "group.bedroom_automations" # The group of automations to disable in manual mode
+
+  # Node settings
+  # Play around with these
+  default_brightness: "180" # range between 0 - 255
+  brightness_leds: "50%" # value too low can cause inconsistent color reproduction
+  timeout_leds: "5s" # in seconds, timeout for the led ring to show only 1 led
+  dimming_interval: "0.25" # in seconds, can go as low as 0.25
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include devices/slimmer_dimmer_v2.yaml
+
+######################### WIFI #########################
+#wifi:
+## Optional manual IP
+#  manual_ip:
+#    static_ip: 192.168.178.32
+#    gateway: 192.168.178.1
+#    subnet: 255.255.255.0
+
+######################### LOGGER #########################
+logger:
+  level: DEBUG
+...

@@ -1,0 +1,39 @@
+---
+#####################################################
+###################### GENERAL ######################
+#####################################################
+substitutions:
+  node_platform: ESP8266
+  node_board: esp12e
+
+######################### PACKAGES #########################
+packages:
+  mqtt: !include ../common/communication/mqtt.yaml
+  base: !include ../common/custom/slimmer_dimmer_v2/dimmer_base.yaml
+  hass_mqtt: !include ../common/custom/slimmer_dimmer_v2/hass_mqtt.yaml
+  encoder: !include ../common/custom/slimmer_dimmer_v2/encoder.yaml
+  button: !include ../common/custom/slimmer_dimmer_v2/button.yaml
+  led: !include ../common/custom/slimmer_dimmer_v2/led.yaml
+  device_base: !include ../common/device_base.yaml
+  basic_sensors: !include ../common/basic_sensors.yaml
+
+######################### LOGGING #########################
+status_led:
+  pin:
+    number: GPIO2
+    inverted: True #Normally off
+
+####################################################################
+###################### DETAILED CONFIGURATION ######################
+####################################################################
+
+######################### GLOBAL VARIABLES #########################
+globals:
+  # Colors used in different states (RGB)
+  - id: color_manual
+    type: int[3]
+    initial_value: "{255, 240, 170}"
+  - id: color_automatic
+    type: int[3]
+    initial_value: "{100, 100, 180}"
+...

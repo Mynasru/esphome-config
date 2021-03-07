@@ -1,0 +1,53 @@
+esphome:
+  on_boot:
+    priority: -100
+    then:
+      - script.execute: init_dimmer
+
+globals:
+  - id: is_automatic
+    type: bool
+    restore_value: yes
+    initial_value: "false"
+
+binary_sensor:
+  - platform: gpio
+    #internal: true
+    pin: 
+      number: GPIO1
+      mode: INPUT_PULLUP
+      inverted: true
+    name: ${node_friendly_name} Charging
+    on_press:
+      then:
+        - script.execute: set_charging
+  - platform: gpio
+    #internal: true
+    pin: 
+      number: GPIO4
+      mode: INPUT_PULLUP
+      inverted: true
+    name: ${node_friendly_name} Charged
+    on_press:
+      then:
+        - script.execute: set_charged
+
+script:
+  - id: init_dimmer
+    then:
+      - script.execute: set_ring_on 
+      - delay: 10s
+      - script.execute: set_automatic
+
+  - id: set_automatic
+    then:
+      - lambda: "id(is_automatic) = true;"
+      - lambda: "id(color_active)[0] = id(color_automatic)[0];"
+      - lambda: "id(color_active)[1] = id(color_automatic)[1];"
+      - lambda: "id(color_active)[2] = id(color_automatic)[2];"
+  - id: set_manual
+    then:
+      - lambda: "id(is_automatic) = false;"
+      - lambda: "id(color_active)[0] = id(color_manual)[0];"
+      - lambda: "id(color_active)[1] = id(color_manual)[1];"
+      - lambda: "id(color_active)[2] = id(color_manual)[2];"

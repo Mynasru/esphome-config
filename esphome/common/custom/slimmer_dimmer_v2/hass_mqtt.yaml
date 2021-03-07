@@ -1,0 +1,121 @@
+globals:
+  - id: ignore_updates
+    type: bool
+    restore_value: yes
+    initial_value: "false"
+  - id: manual_brightness
+    type: int
+    initial_value: "0"
+
+sensor:
+  - platform: homeassistant
+    name: ${node_friendly_name} Auto Color Temp
+    id: auto_color_temp
+    entity_id: $auto_color_temp_id
+    internal: true
+
+  - platform: homeassistant
+    name: ${node_friendly_name} Auto brightness
+    id: auto_brightness
+    entity_id: $auto_brightness_id
+    internal: true
+    on_value:
+      - script.execute: received_brightness_update
+
+binary_sensor:
+  - platform: homeassistant
+    name: ${node_friendly_name} Automation group
+    id: automation_group
+    entity_id: $automation_group
+    internal: true
+    on_state:
+     - script.execute: received_automation_group_update
+
+mqtt:
+  on_json_message:
+    topic: $mqtt_light_topic
+    then:
+      - lambda: |-
+          if(x.containsKey("brightness") && x.containsKey("state")) {
+            if(strcmp(x["state"], "ON") == 0) {
+              id(manual_brightness) = x["brightness"];
+            } else {
+              id(manual_brightness) = 0;
+            }
+          }
+      - script.execute: received_brightness_update
+
+script:
+  - id: send_automations
+    mode: restart
+    then:
+      # Together with the "mode: restart", this delay debounces the script
+      - delay: 3s
+      - script.execute: ignore_received_updates
+      - if:
+          condition:
+            lambda: 'return id(is_automatic);'
+          then:
+            - homeassistant.service:
+                service: homeassistant.turn_on
+                data_template:
+                  entity_id: "$automation_group"
+          else:
+            - homeassistant.service:
+                service: homeassistant.turn_off
+                data_template:
+                  entity_id: "$automation_group"
+
+  - id: send_lights
+    then:
+      - if:
+          condition:
+            api.connected:
+          then:
+            - script.execute: ignore_received_updates
+            - mqtt.publish_json:
+                topic: $mqtt_light_topic/set
+                payload: |-
+                  root["brightness"] = id(rotary).state;
+                  root["color_temp"] = id(auto_color_temp).state;
+                  root["transition"] = $dimming_interval;
+
+  - id: received_automation_group_update
+    then:
+      if:
+        condition:
+          lambda: 'return !id(ignore_updates);'
+        then:
+          - if:
+              condition:
+                lambda: 'return id(automation_group).state == true;'
+              then:
+                - script.execute: set_automatic
+              else:
+                - script.execute: set_manual
+          - script.execute: received_brightness_update
+
+  - id: received_brightness_update
+    then:
+      if:
+        condition:
+          lambda: 'return !id(ignore_updates);'
+        then:
+          - if:
+              condition:
+                lambda: 'return id(is_automatic);'
+              then:
+                - lambda: "id(encoder_sync_value) = id(auto_brightness).state;"
+              else:
+                - lambda: "id(encoder_sync_value) = id(manual_brightness);"
+          - script.execute: synchronize_encoder
+
+  - id: ignore_received_updates
+    mode: restart
+    then:
+      - lambda: "id(ignore_updates) = true;"
+      - delay: 5s
+      - lambda: "id(ignore_updates) = false;"
+
+
+
