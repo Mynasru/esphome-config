@@ -1,0 +1,53 @@
+---
+#####################################################
+###################### GENERAL ######################
+#####################################################
+substitutions:
+  node_platform: ESP32
+  node_board: esp-wrover-kit
+
+######################### PACKAGES #########################
+packages:
+  basic_sensors: !include ../common/basic_sensors.yaml
+
+######################### DEVICE #########################
+esphome:
+  name: ${node_name}
+  comment: ${comment}
+  board: ${node_board}
+  platform: ${node_platform}
+  build_path: ./build/${node_name}
+
+######################### LOGGING #########################
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+status_led:
+  pin:
+    number: GPIO2
+    inverted: True #Normally off
+
+######################### WIFI #########################
+wifi:
+  ssid: "non-existing-wifi"
+  password: "12345678"
+  reboot_timeout: ${reboot_timeout}
+  ap:
+    ssid: ${node_name}
+    password: "12345678"
+  # Directly connects to WiFi network without doing a full scan first.
+  fast_connect: true
+captive_portal:
+
+######################### API #########################
+api:
+  password: "12345678"
+  reboot_timeout: ${reboot_timeout}
+#  port: 6053
+
+######################### OTA #########################
+ota:
+  safe_mode: True
+  password: "12345678"
+...
