@@ -1,0 +1,117 @@
+---
+#####################################################
+###################### GENERAL ######################
+#####################################################
+substitutions:
+  node_platform: ESP32
+  node_board: esp-wrover-kit
+
+######################### CUSTOM #########################
+esphome:
+  includes:
+    - ../esphome/common/custom/dsmr_p1_uart.h
+    - ../esphome/common/custom/stream_server.h
+    - ../esphome/common/custom/stream_server.cpp
+  libraries:
+    - "Dsmr"
+
+######################### PACKAGES #########################
+packages:
+  device_base: !include ../common/device_base.yaml
+  basic_sensors: !include ../common/basic_sensors.yaml
+
+######################### LOGGING #########################
+#status_led:
+#  pin:
+#    number: GPIO2
+#    inverted: True #Normally off
+
+####################################################################
+###################### DETAILED CONFIGURATION ######################
+####################################################################
+
+######################### UART #########################
+uart:
+  - rx_pin: GPIO21
+    tx_pin: GPIO22
+    baud_rate: 115200
+    invert: True
+    data_bits: 8
+    parity: NONE
+    stop_bits: 1
+    #rx_buffer_size: 256
+    id: p1_bus    
+
+######################### LIGHT #########################
+light:
+  - platform: fastled_clockless
+    chipset: WS2812B
+    pin: GPIO04
+    num_leds: 3
+    rgb_order: GRB
+    name: $node_friendly_name Light
+    effects:
+      - addressable_twinkle:
+      - addressable_random_twinkle:
+      - addressable_color_wipe:
+
+######################### OUTPUT #########################
+output:
+  - platform: ledc
+    pin: GPIO14
+    frequency: 2441Hz
+    id: rtttl_buzzer
+
+######################### RTTTL #########################
+rtttl:
+  output: rtttl_buzzer
+
+######################### SWITCH #########################
+switch:
+  - platform: gpio
+    name: $node_friendly_name REQ
+    pin:
+      number: GPIO023
+
+######################### BINARY SENSORS #########################
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO12
+      #mode: INPUT_PULLUP
+      inverted: True
+    name: $node_friendly_name Button 1
+    on_press:
+      then:
+        - rtttl.play: 'MissionImp:d=16,o=6,b=95:32d,32d#,32d,32d#,32d,32d#,32d,32d#,32d,32d,32d#,32e,32f,32f#,32g,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,a#,g,2d,32p,a#,g,2c#,32p,a#,g,2c,a#5,8c,2p,32p,a#5,g5,2f#,32p,a#5,g5,2f,32p,a#5,g5,2e,d#,8d'
+  - platform: gpio
+    pin:
+      number: GPIO13
+      #mode: INPUT_PULLUP
+      inverted: True
+    name: $node_friendly_name Button 2
+    on_press:
+      then:
+        - rtttl.stop
+
+######################### SENSORS #########################
+sensor:
+  - platform: pulse_counter
+    pin: GPIO19
+    unit_of_measurement: 'L'
+    name: $node_friendly_name water usage 1
+    filters:
+      - multiply: 0.0001
+  - platform: pulse_counter
+    pin: GPIO18
+    unit_of_measurement: 'L'
+    name: $node_friendly_name water usage 2
+    filters:
+      - multiply: 0.0001
+
+######################### CUSTOM COMPONENT #########################
+custom_component:
+  - lambda: |-
+      auto stream_server = new StreamServerComponent(id(p1_bus));
+      return {stream_server};
+...
