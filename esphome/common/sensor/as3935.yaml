@@ -1,0 +1,9 @@
+---
+platform: as3935
+lightning_energy:
+  name: ${node_friendly_name} Lightning Energy
+  id: lightningEnergy
+distance:
+  name: ${node_friendly_name} Distance Storm
+  id: distanceStorm
+...

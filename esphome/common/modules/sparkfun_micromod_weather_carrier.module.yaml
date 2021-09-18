@@ -1,0 +1,75 @@
+---
+sensor:
+  - <<: !include ../../common/sensor/bme280.yaml
+  - <<: !include ../../common/sensor/as3935.yaml
+  - <<: !include ../../common/sensor/sps30.yaml
+  
+  - platform: pulse_counter
+    pin: GPIO14 #MM D0
+    name: ${node_friendly_name} Wind Speed
+    unit_of_measurement: "km/h"
+    icon: mdi:weather-windy
+    update_interval: ${global_update_interval}
+    filters:
+      - multiply: 0.04
+  
+  - platform: resistance
+    sensor: wdir
+    configuration: DOWNSTREAM
+    resistor: 10kOhm
+    name: ${node_friendly_name} Wind direction
+    unit_of_measurement: "°"
+    icon: mdi:compass-rose
+    filters:
+      - calibrate_linear:
+          # https://learn.sparkfun.com/tutorials/micromod-weather-carrier-board-hookup-guide#weather-station-arduino-example
+          - 33000.0 -> 0.0
+          - 6570 -> 22.5
+          - 8200 -> 45.0
+          - 891.0 -> 67.5
+          - 1000 -> 90.0
+          - 688.0 -> 112.5
+          - 2200 -> 135.0
+          - 1410 -> 157.5
+          - 3900 -> 180.0
+          - 3140 -> 202.5
+          - 16000 -> 225.0
+          - 14120 -> 247.5
+          - 120000 -> 270.0
+          - 42120 -> 292.5
+          - 64900 -> 315
+          - 21880 -> 337.5
+
+  - platform: adc
+    pin: GPIO35 #MM A1
+    name: wdir
+    id: wdir
+    internal: true
+    attenuation: 11db # 0-3.9v
+
+
+binary_sensor:
+  - <<: !include ../../common/binary_sensor/as3935.yaml
+
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  id: bus_a
+
+spi:
+  clk_pin: GPIO18
+  mosi_pin: GPIO23
+  miso_pin: GPIO19
+
+as3935_spi:
+  cs_pin: GPIO25 #MM G1
+  irq_pin: GPIO17 #MM G3
+  indoor: true
+  noise_level: 2
+  spike_rejection: 4
+  lightning_threshold: 1
+  mask_disturber: false
+  div_ratio: 0
+  capacitance: 0
+  watchdog_threshold: 2
+...

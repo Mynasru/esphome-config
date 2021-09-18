@@ -1,0 +1,5 @@
+---
+platform: as3935
+name: ${node_friendly_name} Storm Alert
+id: stormAlert
+...
